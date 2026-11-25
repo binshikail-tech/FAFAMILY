@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d26">
+  <title>منصة عائلة آل ياسر الذكية</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{font-family:"Cairo",sans-serif;color:#f8f7ff;background:#080d26}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#202958 0,#101733 38%,#080d26 78%);font-family:"Cairo",sans-serif}
+    button,input,select{font:inherit}
+    button{touch-action:manipulation}
+    #space-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+    #app{position:relative;z-index:1}
+    .glass{background:rgba(22,31,66,.82);border:1px solid rgba(187,197,255,.2);box-shadow:0 18px 55px rgba(0,0,0,.24);backdrop-filter:blur(14px)}
+    .portal-card{transition:transform .22s,border-color .22s,box-shadow .22s}
+    .portal-card:hover{transform:translateY(-5px);border-color:rgba(255,255,255,.55);box-shadow:0 20px 50px #0005}
+    .title-glow{color:#fff;text-shadow:0 3px 0 #6454b5,0 6px 0 #403678,0 10px 24px #b19dff88}
+    .soft-button{transition:transform .15s,filter .15s}
+    .soft-button:hover{filter:brightness(1.1);transform:translateY(-1px)}
+    .soft-button:active{transform:scale(.97)}
+    .task-row.is-done{background:#153d3c;border-color:#34d399}
+    .task-row.is-done .task-name{text-decoration:line-through;color:#a7f3d0}
+    .tab-button.active{background:#7561ee;color:white;border-color:#a89cff}
+    .tab-button{background:#18234b;border:1px solid #ffffff20;color:#dce1ff}
+    .game-tile{aspect-ratio:1;border:2px solid #fff9;border-radius:12px;background-repeat:no-repeat;cursor:pointer;min-width:0}
+    .memory-card{min-height:76px;font-size:clamp(1.6rem,5vw,2.4rem);background:linear-gradient(145deg,#584bd0,#9479ff);border:2px solid #c5baff;border-radius:14px}
+    .memory-card.revealed{background:#fff;color:#161a38}
+    #confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:20;overflow:hidden}
+    .confetti-piece{position:absolute;top:-20px;width:10px;height:16px;animation:confetti-fall 2.8s linear forwards}
+    @keyframes confetti-fall{to{transform:translate3d(var(--drift),110vh,0) rotate(900deg);opacity:.2}}
+    .badge-pulse{animation:pulse 1.4s infinite}
+    @keyframes pulse{50%{box-shadow:0 0 0 7px #fb718533}}
+    .scroll-panel{max-height:58vh;overflow:auto}
+    .focus-ring:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #facc15;outline-offset:3px}
+    @media(max-width:640px){.scroll-panel{max-height:none}.game-tile{border-radius:8px}.memory-card{min-height:62px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <canvas id="space-canvas" aria-hidden="true"></canvas>
+  <div id="confetti-layer" aria-hidden="true"></div>
+  <main id="app" class="mx-auto max-w-7xl px-4 py-6 sm:px-7 sm:py-9">
+    <div id="storage-warning" class="hidden mb-4 rounded-xl border border-amber-300/40 bg-amber-950/80 p-3 text-sm text-amber-100" role="status"></div>
+
+    <section id="auth-screen" class="mx-auto hidden max-w-4xl py-6">
+      <header class="mb-7 text-center">
+        <div class="mb-3 inline-flex rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-bold text-violet-100">🔐 دخول عائلة آل ياسر</div>
+        <h1 class="title-glow text-4xl font-black sm:text-5xl">مرحباً بكم في منصتكم</h1>
+        <p class="mt-3 text-indigo-100/80">اضغط على بطاقتك ثم اكتب رمزك السري.</p>
+      </header>
+      <div class="mx-auto grid max-w-2xl grid-cols-2 gap-4">
+        <button type="button" onclick="openPasswordPrompt('father')" class="portal-card glass focus-ring flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-t-4 border-t-sky-400 p-4 text-center"><span class="grid h-16 w-16 place-items-center rounded-2xl bg-sky-300/15 text-5xl">👨🏻</span><strong class="text-xl">بوابة الأب</strong></button>
+        <button type="button" onclick="openPasswordPrompt('mother')" class="portal-card glass focus-ring flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-t-4 border-t-pink-400 p-4 text-center"><span class="grid h-16 w-16 place-items-center rounded-2xl bg-pink-300/15 text-5xl">👩🏻</span><strong class="text-xl">بوابة الأم</strong></button>
+      </div>
+      <div class="mx-auto mt-4 grid max-w-4xl grid-cols-3 gap-4">
+        <button type="button" onclick="openPasswordPrompt('saba')" class="portal-card glass focus-ring flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-t-4 border-t-fuchsia-400 p-3 text-center"><span class="grid h-16 w-16 place-items-center rounded-full bg-fuchsia-400/15 text-5xl">👧🏻</span><strong class="text-lg text-fuchsia-100 sm:text-2xl">الأميرة سبأ</strong></button>
+        <button type="button" onclick="openPasswordPrompt('yaser')" class="portal-card glass focus-ring flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-t-4 border-t-emerald-400 p-3 text-center"><span class="grid h-16 w-16 place-items-center rounded-full bg-emerald-400/15 text-5xl">🧒🏻</span><strong class="text-lg text-emerald-100 sm:text-2xl">البطل ياسر</strong></button>
+        <button type="button" onclick="openPasswordPrompt('moataz')" class="portal-card glass focus-ring flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-t-4 border-t-amber-300 p-3 text-center"><span class="grid h-16 w-16 place-items-center rounded-full bg-amber-300/15 text-5xl">👦🏻</span><strong class="text-lg text-amber-100 sm:text-2xl">البطل معتز</strong></button>
+      </div>
+      <div id="password-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4" onclick="if(event.target===this)closePasswordPrompt()">
+        <form onsubmit="loginWithPin(event)" class="glass w-full max-w-sm space-y-4 rounded-3xl p-6 text-center">
+          <div id="password-modal-icon" class="text-6xl"></div>
+          <h2 id="password-modal-name" class="text-2xl font-black"></h2>
+          <label class="block text-sm font-bold" for="login-pin">اكتب الرمز السري</label>
+          <input id="login-pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off" required class="w-full rounded-xl border border-white/15 bg-slate-950/70 p-4 text-center text-2xl tracking-[.6em]">
+          <p id="login-message" class="min-h-6 text-center text-sm font-bold text-rose-200" aria-live="polite"></p>
+          <div class="flex gap-2"><button type="submit" class="soft-button flex-1 rounded-2xl bg-gradient-to-l from-indigo-500 to-violet-600 px-5 py-3 text-lg font-extrabold">دخول</button><button type="button" onclick="closePasswordPrompt()" class="soft-button rounded-2xl bg-white/10 px-5 py-3 font-bold">إلغاء</button></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="main-portal" class="hidden">
+      <div class="glass mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
+        <span id="home-session-label" class="font-bold text-indigo-100"></span>
+        <button type="button" onclick="logout()" class="soft-button rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold">تسجيل الخروج ⏻</button>
+      </div>
+      <header class="mb-9 text-center">
+        <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-bold text-violet-100">✨ بوابة البيت السعيد ✨</div>
+        <h1 class="title-glow text-4xl font-black sm:text-6xl">منصة عائلة آل ياسر</h1>
+        <p class="mt-3 text-base text-indigo-100 sm:text-lg">نتعلّم، ننجز، ونفرح معاً كل يوم 🌙</p>
+      </header>
+
+      <section class="mb-9" aria-labelledby="parents-heading">
+        <h2 id="parents-heading" class="mb-4 text-xl font-extrabold text-white">💫 بوابة الوالدين</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <button type="button" onclick="openParentDashboard('الأب')" class="portal-card glass focus-ring relative flex min-h-28 items-center justify-between rounded-3xl border-r-4 border-r-sky-400 p-5 text-right">
+            <span class="flex items-center gap-4"><span class="grid h-14 w-14 place-items-center rounded-2xl bg-sky-300/15 text-4xl">👨🏻</span><span><strong class="block text-xl">بوابة الأب</strong><small class="mt-1 block text-indigo-100/70">متابعة الإنجازات وإرسال التشجيع</small></span></span>
+            <span id="parent-badge-father" class="hidden rounded-full bg-rose-500 px-3 py-1 text-xs font-extrabold text-white">جديد!</span>
+          </button>
+          <button type="button" onclick="openParentDashboard('الأم')" class="portal-card glass focus-ring relative flex min-h-28 items-center justify-between rounded-3xl border-r-4 border-r-pink-400 p-5 text-right">
+            <span class="flex items-center gap-4"><span class="grid h-14 w-14 place-items-center rounded-2xl bg-pink-300/15 text-4xl">👩🏻</span><span><strong class="block text-xl">بوابة الأم</strong><small class="mt-1 block text-indigo-100/70">لوحة المتابعة والهدايا الجميلة</small></span></span>
+            <span id="parent-badge-mother" class="hidden rounded-full bg-rose-500 px-3 py-1 text-xs font-extrabold text-white">جديد!</span>
+          </button>
+        </div>
+      </section>
+
+      <section aria-labelledby="kids-heading">
+        <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
+          <h2 id="kids-heading" class="text-xl font-extrabold text-white">🌟 أبطال العائلة</h2>
+          <span id="today-label" class="text-sm text-indigo-100/70"></span>
+        </div>
+        <div class="grid gap-5 md:grid-cols-3">
+          <article class="portal-card glass rounded-3xl border-t-4 border-t-fuchsia-400 p-5">
+            <button type="button" onclick="openChildDashboard('سبأ')" class="focus-ring w-full rounded-2xl text-center">
+              <span class="mx-auto mb-2 grid h-20 w-20 place-items-center rounded-full bg-fuchsia-400/15 text-5xl">👧🏻</span>
+              <strong class="block text-2xl font-black text-fuchsia-100">الأميرة سبأ</strong>
+              <span class="text-sm text-indigo-100/70">٩ سنوات</span>
+            </button>
+            <div id="summary-سبأ" class="mt-4"></div>
+          </article>
+          <article class="portal-card glass rounded-3xl border-t-4 border-t-emerald-400 p-5">
+            <button type="button" onclick="openChildDashboard('ياسر')" class="focus-ring w-full rounded-2xl text-center">
+              <span class="mx-auto mb-2 grid h-20 w-20 place-items-center rounded-full bg-emerald-400/15 text-5xl">🧒🏻</span>
+              <strong class="block text-2xl font-black text-emerald-100">البطل ياسر</strong>
+              <span class="text-sm text-indigo-100/70">٧ سنوات</span>
+            </button>
+            <div id="summary-ياسر" class="mt-4"></div>
+          </article>
+          <article class="portal-card glass rounded-3xl border-t-4 border-t-amber-300 p-5">
+            <button type="button" onclick="openChildDashboard('معتز')" class="focus-ring w-full rounded-2xl text-center">
+              <span class="mx-auto mb-2 grid h-20 w-20 place-items-center rounded-full bg-amber-300/15 text-5xl">👦🏻</span>
+              <strong class="block text-2xl font-black text-amber-100">البطل معتز</strong>
+              <span class="text-sm text-indigo-100/70">٥ سنوات</span>
+            </button>
+            <div id="summary-معتز" class="mt-4"></div>
+          </article>
+        </div>
+      </section>
+    </section>
+
+    <section id="child-dashboard" class="hidden">
+      <header class="glass mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4">
+        <button id="child-back-button" type="button" onclick="goBackToMain()" class="soft-button rounded-xl bg-white/10 px-4 py-2 font-bold">↩ الرئيسية</button>
+        <h2 id="child-title" class="text-2xl font-black"></h2>
+        <div id="child-stars" class="rounded-full bg-amber-300/15 px-4 py-2 font-extrabold text-amber-200">⭐ ٠ نجوم</div>
+      </header>
+      <nav class="mb-5 grid grid-cols-3 gap-2" aria-label="أقسام لوحة الطفل">
+        <button id="tab-btn-tasks" type="button" onclick="switchTab('tasks')" class="tab-button active rounded-xl px-2 py-3 text-sm font-bold sm:text-base">📋 مهامي</button>
+        <button id="tab-btn-activities" type="button" onclick="switchTab('activities')" class="tab-button rounded-xl px-2 py-3 text-sm font-bold sm:text-base">🎨 أنشطتي</button>
+        <button id="tab-btn-games" type="button" onclick="switchTab('games')" class="tab-button rounded-xl px-2 py-3 text-sm font-bold sm:text-base">🎮 ألعابي</button>
+      </nav>
+      <section id="tab-tasks" class="glass rounded-3xl p-4 sm:p-6">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div><h3 class="text-xl font-extrabold">مهام اليوم 🌈</h3><p class="text-sm text-indigo-100/70">كل إنجاز يضيف نجوماً إلى رصيدك!</p></div>
+          <button type="button" onclick="refreshDailyTasks()" class="soft-button rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-bold">🔄 تجديد مهام اليوم</button>
+        </div>
+        <div id="tasks-container" class="space-y-2"></div>
+        <button type="button" onclick="submitDayTasks()" class="soft-button mt-5 w-full rounded-2xl bg-gradient-to-l from-emerald-500 to-teal-500 px-5 py-4 text-lg font-extrabold shadow-lg">إرسال إنجازاتي للوالدين 🚀</button>
+        <form onsubmit="sendChildRequest(event)" class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <label for="child-request" class="mb-2 block font-bold">هل تحتاج إلى شيء؟ أرسل طلباً للوالدين 💌</label>
+          <div class="flex flex-col gap-2 sm:flex-row"><input id="child-request" maxlength="160" required placeholder="اكتب طلبك هنا" class="min-w-0 flex-1 rounded-xl border border-white/15 bg-slate-950/50 px-3 py-3 text-white placeholder:text-slate-400">
+          <button type="submit" class="soft-button rounded-xl bg-sky-600 px-5 py-3 font-bold">إرسال الطلب</button></div>
+        </form>
+      </section>
+      <section id="tab-activities" class="glass hidden rounded-3xl p-4 sm:p-6">
+        <h3 class="mb-1 text-xl font-extrabold">أنشطة بيتية تتجدد 🌻</h3><p class="mb-4 text-sm text-indigo-100/70">اختر نشاطاً وأخبر عائلتك بما أنجزت.</p>
+        <div id="activities-container" class="grid gap-3 sm:grid-cols-2"></div>
+      </section>
+      <section id="tab-games" class="glass hidden rounded-3xl p-4 sm:p-6">
+        <h3 id="games-heading" class="mb-1 text-xl font-extrabold">ألعاب ممتعة 🎮</h3>
+        <p class="mb-4 text-sm text-indigo-100/70">ألعاب مصممة لتناسب عمرك، وتعمل باللمس أو الفأرة.</p>
+        <div id="games-container" class="grid gap-3 sm:grid-cols-2"></div>
+        <div id="game-play-area" class="mt-5"></div>
+      </section>
+    </section>
+
+    <section id="parent-dashboard" class="hidden">
+      <header class="glass mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4">
+        <button type="button" onclick="goBackToMain()" class="soft-button rounded-xl bg-white/10 px-4 py-2 font-bold">↩ الرئيسية</button>
+        <h2 id="parent-title" class="text-2xl font-black">لوحة المتابعة</h2>
+        <div class="flex items-center gap-2"><span class="rounded-full bg-sky-300/15 px-4 py-2 font-bold text-sky-100">📊 متابعة العائلة</span><button type="button" onclick="logout()" class="soft-button rounded-xl bg-rose-600/80 px-3 py-2 text-sm font-bold">خروج ⏻</button></div>
+      </header>
+      <section class="glass mb-5 rounded-3xl p-4 sm:p-6">
+        <h3 class="mb-3 text-xl font-extrabold">🔔 إشعارات الأطفال</h3>
+        <div id="parent-notifications" class="space-y-3"></div>
+      </section>
+      <section aria-labelledby="family-tables-heading">
+        <h3 id="family-tables-heading" class="mb-4 text-xl font-extrabold">📋 جداول متابعة اليوم</h3>
+        <div id="parent-tables" class="grid items-start gap-4 lg:grid-cols-3"></div>
+      </section>
+      <details class="glass mt-5 rounded-3xl p-4 sm:p-6">
+        <summary class="cursor-pointer text-xl font-extrabold">🔐 إدارة رموز دخول العائلة</summary>
+        <p class="my-3 text-sm text-indigo-100/75">يمكن للأب أو الأم تعيين رمز جديد لأي حساب. لا نعرض الرمز الحالي؛ عيّن رمزاً جديداً عند الحاجة.</p>
+        <div id="pin-management" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"></div>
+        <p class="mt-4 rounded-xl border border-amber-200/20 bg-amber-400/10 p-3 text-xs leading-6 text-amber-100">تُخزَّن الرموز محلياً في هذا المتصفح، لذلك لا تستخدمها لحماية معلومات حساسة أو أجهزة مشتركة غير موثوقة.</p>
+      </details>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+    const children = ["سبأ", "ياسر", "معتز"];
+    const ages = {"سبأ":9,"ياسر":7,"معتز":5};
+    const childIcons = {"سبأ":"👧🏻","ياسر":"🧒🏻","معتز":"👦🏻"};
+    const profiles=[
+      {id:"father",name:"الأب",parent:true},
+      {id:"mother",name:"الأم",parent:true},
+      {id:"saba",name:"الأميرة سبأ",child:"سبأ"},
+      {id:"yaser",name:"البطل ياسر",child:"ياسر"},
+      {id:"moataz",name:"البطل معتز",child:"معتز"}
+    ];
+    const childProfileIds={"سبأ":"saba","ياسر":"yaser","معتز":"moataz"};
+    const giftOptions = [
+      {label:"🌹 وردة جميلة",emoji:"🌹",stars:0},
+      {label:"⭐ نجمة ذهبية",emoji:"⭐",stars:5},
+      {label:"🎈 بالونة ملونة",emoji:"🎈",stars:0},
+      {label:"🏆 كأس البطل",emoji:"🏆",stars:3},
+      {label:"🍫 قطعة شوكولاتة",emoji:"🍫",stars:0}
+    ];
+    const prayerNames = ["الفجر","الظهر","العصر","المغرب","العشاء"];
+    const standardTasks = [
+      ...prayerNames.map((name,index)=>({id:`prayer-${index}`,title:`صلاة ${name}`,stars:3})),
+      {id:"teeth",title:"تفريش الأسنان",stars:2},
+      {id:"breakfast",title:"تناول الريوق الصحي",stars:2},
+      {id:"lunch",title:"تناول الغداء الصحي",stars:2},
+      {id:"dinner",title:"تناول العشاء الصحي",stars:2},
+      {id:"bath",title:"الاستحمام والعناية بنظافتي",stars:3},
+      {id:"room",title:"ترتيب غرفتي",stars:3}
+    ];
+    const rotatingTasks = {
+      "سبأ":[["قراءة قصة مفيدة","مساعدة في تجهيز المائدة"],["مراجعة دروسي","ترتيب مكتبي"],["رسم لوحة جميلة","سقي النباتات"],["مساعدة أمي في المطبخ","قراءة عشر صفحات"],["ترتيب ملابسي","مراجعة واجباتي"],["كتابة كلمة شكر","مساعدة في ترتيب الصالة"],["اختيار كتاب جديد","تنظيم أدواتي"]],
+      "ياسر":[["ترتيب ألعابي","قراءة قصة قصيرة"],["مراجعة الحروف","مساعدة في تجهيز المائدة"],["سقي النباتات","ترتيب كتبي"],["رسم شكل جديد","مساعدة أمي في المطبخ"],["مراجعة الأرقام","تنظيم ألعابي"],["قراءة قصة","مساعدة في ترتيب الصالة"],["ترتيب حقيبتي","رسم بطاقة جميلة"]],
+      "معتز":[["ترتيب ألعابي مع العائلة","تسمية ألوان الأشياء"],["مساعدة في ترتيب الوسائد","قراءة قصة مع أحد الوالدين"],["ترتيب المكعبات","سقي نبتة"],["اختيار ملابس الغد","رسم دائرة ومربع"],["وضع الكتب في مكانها","المساعدة في تجهيز المائدة"],["لعب لعبة فرز الألوان","ترتيب الأحذية"],["تنظيف طاولتي","قراءة قصة مصورة"]]
+    };
+    const activityBank = [
+      {emoji:"🥕",title:"مساعدة أمي في المطبخ",text:"ساعد في غسل الخضار أو تجهيز المائدة بإشراف أحد الوالدين."},
+      {emoji:"🖍️",title:"تلوين رسمة",text:"اختر ألوانك المفضلة واصنع لوحة جميلة."},
+      {emoji:"📚",title:"قراءة قصة",text:"اقرأ قصة ممتعة بمساعدة أحد أفراد العائلة."},
+      {emoji:"🧸",title:"ترتيب الألعاب",text:"أعد ألعابك إلى مكانها واجعل الغرفة مرتبة."},
+      {emoji:"🔎",title:"لغز البحث عن الأشياء",text:"ابحث عن شيء دائري، وشيء أحمر، وشيء ناعم في المنزل."},
+      {emoji:"🌱",title:"رعاية نبتة",text:"اسقِ نبتة وتعلّم كيف تساعدها على النمو."},
+      {emoji:"🧩",title:"تحدي المكعبات",text:"ابنِ شكلاً جديداً بالمكعبات ثم شارك قصته."},
+      {emoji:"🎵",title:"إيقاع عائلي",text:"اختر لحناً وصفق إيقاعاً ممتعاً مع عائلتك."},
+      {emoji:"🧦",title:"فرز الجوارب",text:"طابق الجوارب المتشابهة وساعد في ترتيبها."},
+      {emoji:"💌",title:"بطاقة محبة",text:"ارسم بطاقة صغيرة أو اكتب كلمة جميلة لأحد أفراد الأسرة."}
+    ];
+    const quizBank = {
+      "معتز":[
+        {q:"أي شكل له ثلاثة أضلاع؟",options:["🔺 مثلث","⚪ دائرة","🟦 مربع"],a:0},
+        {q:"ما لون الموز الناضج؟",options:["أزرق","أصفر","بنفسجي"],a:1},
+        {q:"كم نجمة؟ ⭐ ⭐ ⭐",options:["٢","٣","٤"],a:1},
+        {q:"أي حيوان يقول مواء؟",options:["🐱 قطة","🐶 كلب","🐄 بقرة"],a:0}
+      ],
+      "ياسر":[
+        {q:"٨ + ٥ = ؟",options:["١٢","١٣","١٤"],a:1},
+        {q:"١٧ - ٩ = ؟",options:["٧","٨","٩"],a:1},
+        {q:"أي كلمة عكس «ليل»؟",options:["ظلام","نهار","مساء"],a:1},
+        {q:"٦ + ٧ = ؟",options:["١٢","١٣","١٤"],a:1}
+      ],
+      "سبأ":[
+        {q:"٧ × ٦ = ؟",options:["٤٢","٤٨","٣٦"],a:0},
+        {q:"ما الكوكب المعروف بالكوكب الأحمر؟",options:["المريخ","الزهرة","زحل"],a:0},
+        {q:"٩ × ٨ = ؟",options:["٧٢","٦٤","٨١"],a:0},
+        {q:"شيء له مفاتيح ولا يفتح باباً، ما هو؟",options:["البيانو","النافذة","الحقيبة"],a:0}
+      ]
+    };
+    const gameList = [
+      {id:"balloons",emoji:"🎈",title:"فرقعة البالونات",description:"الحق بالبالونات واجمع النقاط قبل انتهاء الوقت!"},
+      {id:"puzzle",emoji:"🧩",title:"تركيب الصورة",description:"بدّل أماكن القطع حتى تكتمل صورة الحديقة."},
+      {id:"memory",emoji:"🧠",title:"الذاكرة الذكية",description:"اكشف البطاقات واعثر على الأزواج المتشابهة."},
+      {id:"quiz",emoji:"💡",title:"تحدي الذكاء والحساب",description:"أسئلة وألغاز مناسبة لعمرك."}
+    ];
+    const todayKey = () => {
+      const d=new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    };
+    const makeEmptyByChild = () => Object.fromEntries(children.map(name=>[name,[]]));
+    function freshState(){return {day:todayKey(),rotation:Object.fromEntries(children.map(name=>[name,0])),completed:makeEmptyByChild(),activityDone:makeEmptyByChild(),extraTasks:makeEmptyByChild(),notifications:[],gifts:makeEmptyByChild(),giftStars:Object.fromEntries(children.map(name=>[name,0]))};}
+    function loadState(){
+      const blank=freshState();
+      try{
+        const saved=JSON.parse(localStorage.getItem("al-yaser-family-v1")||"null");
+        if(!saved||typeof saved!=="object")return blank;
+        const state={...blank,...saved};
+        const savedRotations=typeof saved.rotation==="number"?Object.fromEntries(children.map(name=>[name,saved.rotation])):saved.rotation;
+        for(const name of children){
+          state.rotation[name]=Number(savedRotations&&savedRotations[name])||0;
+          state.completed[name]=Array.isArray(state.completed&&state.completed[name])?state.completed[name]:[];
+          state.activityDone[name]=Array.isArray(state.activityDone&&state.activityDone[name])?state.activityDone[name]:[];
+          state.extraTasks[name]=Array.isArray(state.extraTasks&&state.extraTasks[name])?state.extraTasks[name]:[];
+          state.gifts[name]=Array.isArray(state.gifts&&state.gifts[name])?state.gifts[name]:[];
+          state.giftStars[name]=Number(state.giftStars&&state.giftStars[name])||0;
+        }
+        state.notifications=Array.isArray(state.notifications)?state.notifications:[];
+        if(state.day!==todayKey()){
+          state.day=todayKey();state.rotation=Object.fromEntries(children.map(name=>[name,0]));state.completed=makeEmptyByChild();state.activityDone=makeEmptyByChild();state.extraTasks=makeEmptyByChild();
+        }
+        return state;
+      }catch(error){
+        console.error("تعذر قراءة بيانات المنصة المحفوظة:",error);
+        showStorageWarning("تعذر قراءة البيانات السابقة. ستبدأ المنصة بيوم جديد، وقد لا تظهر البيانات القديمة.");
+        return blank;
+      }
+    }
+    let appState=loadState();
+    let activeChild=null, activeParent="الأب", activeTab="tasks", gameLoopId=null, gameCleanup=null, audioContext=null;
+    let authData=null, authenticatedProfile=null;
+    function saveState(){
+      try{localStorage.setItem("al-yaser-family-v1",JSON.stringify(appState));}
+      catch(error){console.error("تعذر حفظ بيانات المنصة:",error);showStorageWarning("تعذر حفظ التغييرات في هذا المتصفح. تحقق من مساحة التخزين أو إعدادات الخصوصية.");}
+    }
+    function showStorageWarning(message){const node=document.getElementById("storage-warning");node.textContent=message;node.classList.remove("hidden");}
+    function escapeHTML(value){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));}
+    /* الرموز السرية الافتراضية — عدّلها هنا بسهولة. (يمكن للوالدين تغييرها لاحقاً من لوحتهما وتُحفظ على الجهاز) */
+    const DEFAULT_PINS={father:"1234",mother:"1234",saba:"111",yaser:"222",moataz:"333"};
+    let pendingProfile=null;
+    function loadAuthData(){
+      const pins={...DEFAULT_PINS};
+      try{
+        const saved=JSON.parse(localStorage.getItem("al-yaser-family-auth-v2")||"null");
+        if(saved&&saved.pins)for(const profile of profiles)if(/^[0-9]{3,4}$/.test(saved.pins[profile.id]))pins[profile.id]=saved.pins[profile.id];
+      }catch(error){console.error("تعذر قراءة رموز الدخول:",error);}
+      return {version:2,pins};
+    }
+    function saveAuthData(){
+      try{localStorage.setItem("al-yaser-family-auth-v2",JSON.stringify(authData));return true;}
+      catch(error){console.error("تعذر حفظ رموز الدخول:",error);showStorageWarning("تعذر حفظ رموز الدخول في هذا المتصفح. لم يتم تطبيق التغيير.");return false;}
+    }
+    function isParentAuthenticated(){return profiles.some(profile=>profile.id===authenticatedProfile&&profile.parent);}
+    function initializeAuthentication(){
+      authData=loadAuthData();
+      document.querySelectorAll(".pin-input").forEach(input=>input.addEventListener("input",()=>{input.value=input.value.replace(/[^0-9]/g,"").slice(0,4);}));
+      renderAuthentication();
+    }
+    function renderAuthentication(){
+      document.getElementById("auth-screen").classList.remove("hidden");
+      for(const id of ["main-portal","child-dashboard","parent-dashboard"])document.getElementById(id).classList.add("hidden");
+      closePasswordPrompt();
+    }
+    function openPasswordPrompt(profileId){
+      const profile=profiles.find(item=>item.id===profileId);
+      if(!profile)return;
+      pendingProfile=profileId;
+      const icons={father:"👨🏻",mother:"👩🏻",saba:childIcons["سبأ"],yaser:childIcons["ياسر"],moataz:childIcons["معتز"]};
+      document.getElementById("password-modal-icon").textContent=icons[profileId]||"";
+      document.getElementById("password-modal-name").textContent=profile.name;
+      document.getElementById("login-message").textContent="";
+      const input=document.getElementById("login-pin");input.value="";
+      const modal=document.getElementById("password-modal");modal.classList.remove("hidden");modal.classList.add("flex");
+      input.focus();
+    }
+    function closePasswordPrompt(){
+      pendingProfile=null;
+      const modal=document.getElementById("password-modal");modal.classList.add("hidden");modal.classList.remove("flex");
+      document.getElementById("login-pin").value="";
+    }
+    function loginWithPin(event){
+      event.preventDefault();
+      const profile=profiles.find(item=>item.id===pendingProfile);
+      const pin=document.getElementById("login-pin").value;
+      if(!profile||authData.pins[profile.id]!==pin){
+        document.getElementById("login-message").textContent="الرمز غير صحيح. حاول مرة أخرى.";
+        document.getElementById("login-pin").value="";
+        return;
+      }
+      authenticatedProfile=profile.id;
+      closePasswordPrompt();
+      document.getElementById("auth-screen").classList.add("hidden");
+      if(profile.parent)openParentDashboard(profile.name);
+      else openChildDashboard(profile.child);
+    }
+    function logout(){
+      stopGameLoop();authenticatedProfile=null;activeChild=null;
+      renderAuthentication();
+    }
+    function renderPinManagement(){
+      const target=document.getElementById("pin-management");
+      if(!target)return;
+      target.innerHTML=profiles.map(profile=>`<form onsubmit="changeProfilePin(event,'${profile.id}')" class="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <h4 class="mb-3 font-extrabold">${profile.parent?(profile.id==="father"?"👨🏻":"👩🏻"):childIcons[profile.child]} ${escapeHTML(profile.name)}</h4>
+        <label class="mb-1 block text-xs" for="new-pin-${profile.id}">الرمز الجديد (٤ أرقام)</label>
+        <input id="new-pin-${profile.id}" class="pin-input mb-3 w-full rounded-xl border border-white/15 bg-slate-950/60 p-3 text-center tracking-[.5em]" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required>
+        <label class="mb-1 block text-xs" for="confirm-pin-${profile.id}">تأكيد الرمز</label>
+        <input id="confirm-pin-${profile.id}" class="pin-input mb-3 w-full rounded-xl border border-white/15 bg-slate-950/60 p-3 text-center tracking-[.5em]" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required>
+        <p id="pin-status-${profile.id}" class="min-h-5 text-xs font-bold text-emerald-200" aria-live="polite"></p>
+        <button type="submit" class="soft-button w-full rounded-xl bg-indigo-600 px-3 py-2 text-sm font-bold">تغيير الرمز</button>
+      </form>`).join("");
+      target.querySelectorAll(".pin-input").forEach(input=>input.addEventListener("input",()=>{input.value=input.value.replace(/[^0-9]/g,"").slice(0,4);}));
+    }
+    function changeProfilePin(event,profileId){
+      event.preventDefault();
+      if(!isParentAuthenticated())return;
+      const profile=profiles.find(item=>item.id===profileId);
+      if(!profile)return;
+      const pin=document.getElementById(`new-pin-${profileId}`).value;
+      const confirmation=document.getElementById(`confirm-pin-${profileId}`).value;
+      const status=document.getElementById(`pin-status-${profileId}`);
+      if(!/^[0-9]{4}$/.test(pin)||pin!==confirmation){status.textContent="الرمزان غير متطابقين أو لا يتكونان من ٤ أرقام.";status.classList.remove("text-emerald-200");status.classList.add("text-rose-200");return;}
+      const previousPin=authData.pins[profileId];
+      authData.pins[profileId]=pin;
+      if(!saveAuthData()){authData.pins[profileId]=previousPin;return;}
+      document.getElementById(`new-pin-${profileId}`).value="";
+      document.getElementById(`confirm-pin-${profileId}`).value="";
+      status.textContent=`تم تغيير رمز ${profile.name} بنجاح.`;
+      status.classList.remove("text-rose-200");status.classList.add("text-emerald-200");
+    }
+    function ensureCurrentDay(){
+      if(appState.day===todayKey())return;
+      appState.day=todayKey();appState.rotation=Object.fromEntries(children.map(name=>[name,0]));appState.completed=makeEmptyByChild();appState.activityDone=makeEmptyByChild();appState.extraTasks=makeEmptyByChild();saveState();
+    }
+    function dayIndex(){return new Date().getDay();}
+    function getTasks(name){
+      ensureCurrentDay();
+      const rotation=appState.rotation[name];
+      const extras=rotatingTasks[name][(dayIndex()+rotation)%7].map((title,i)=>({id:`rotate-${rotation}-${i}`,title,stars:3}));
+      return [...standardTasks,...extras,...appState.extraTasks[name]];
+    }
+    function getActivities(name){
+      ensureCurrentDay();
+      const rotation=appState.rotation[name];
+      const start=(dayIndex()*2+rotation*3+(ages[name]||0))%activityBank.length;
+      return Array.from({length:5},(_,i)=>({...activityBank[(start+i)%activityBank.length],id:`activity-${start+i}-${rotation}`,stars:4}));
+    }
+    function completedStars(name){
+      const taskStars=getTasks(name).reduce((sum,task)=>sum+(appState.completed[name].includes(task.id)?task.stars:0),0);
+      const activityStars=getActivities(name).reduce((sum,item)=>sum+(appState.activityDone[name].includes(item.id)?item.stars:0),0);
+      return taskStars+activityStars+appState.giftStars[name];
+    }
+    function progressFor(name){
+      const tasks=getTasks(name), activities=getActivities(name);
+      const count=tasks.filter(item=>appState.completed[name].includes(item.id)).length+activities.filter(item=>appState.activityDone[name].includes(item.id)).length;
+      return Math.round(count/(tasks.length+activities.length)*100);
+    }
+    function updateHome(){
+      const date=new Intl.DateTimeFormat("ar",{weekday:"long",day:"numeric",month:"long"}).format(new Date());
+      document.getElementById("today-label").textContent=`اليوم ${date}`;
+      for(const name of children){
+        const gifts=appState.gifts[name].slice(-2).reverse();
+        document.getElementById(`summary-${name}`).innerHTML=`<div class="rounded-2xl bg-white/5 p-3">
+          <div class="mb-2 flex justify-between text-sm font-bold"><span>الإنجاز اليوم</span><span>${progressFor(name)}%</span></div>
+          <div class="mb-3 h-2 overflow-hidden rounded-full bg-black/20"><div class="h-full rounded-full bg-gradient-to-l from-emerald-300 to-cyan-300" style="width:${progressFor(name)}%"></div></div>
+          <div class="flex justify-between gap-2 text-sm"><span class="text-amber-200">⭐ ${completedStars(name)} نجمة</span><span class="text-indigo-100/70">🎁 ${appState.gifts[name].length} هدية</span></div>
+          <div class="mt-2 border-t border-white/10 pt-2 text-xs text-indigo-100/80">آخر الهدايا: ${gifts.length?gifts.map(item=>`${escapeHTML(item.emoji)} من ${escapeHTML(item.from)}`).join("، "):"لا توجد هدايا بعد"}</div>
+        </div>`;
+      }
+      updateParentBadges();
+    }
+    function updateParentBadges(){
+      const hasNew=appState.notifications.some(note=>!note.read);
+      for(const id of ["parent-badge-father","parent-badge-mother"]){
+        const badge=document.getElementById(id);badge.classList.toggle("hidden",!hasNew);badge.classList.toggle("badge-pulse",hasNew);
+      }
+    }
+    function stopGameLoop(){if(gameLoopId!==null){cancelAnimationFrame(gameLoopId);gameLoopId=null;}if(gameCleanup){gameCleanup();gameCleanup=null;}}
+    function openChildDashboard(name){
+      if(!authenticatedProfile||(!isParentAuthenticated()&&authenticatedProfile!==childProfileIds[name]))return;
+      activeChild=name;stopGameLoop();
+      document.getElementById("auth-screen").classList.add("hidden");
+      document.getElementById("main-portal").classList.add("hidden");
+      document.getElementById("parent-dashboard").classList.add("hidden");
+      document.getElementById("child-dashboard").classList.remove("hidden");
+      document.getElementById("child-back-button").textContent=isParentAuthenticated()?"↩ الرئيسية":"تسجيل الخروج ⏻";
+      document.getElementById("child-title").textContent=`مرحباً ${name} ${childIcons[name]}`;
+      renderTasks();renderActivities();switchTab("tasks");
+      const unseen=appState.gifts[name].filter(item=>!item.seen);
+      if(unseen.length){
+        showConfetti(100);
+        unseen.forEach(item=>item.seen=true);
+        saveState();updateHome();
+        setTimeout(()=>alert(`🎉 هدية جميلة لك من ${unseen.map(item=>item.from).join(" و")}! ${unseen.map(item=>item.emoji).join(" ")}`),250);
+      }
+    }
+    function openParentDashboard(parentName){
+      if(!isParentAuthenticated())return;
+      const current=profiles.find(profile=>profile.id===authenticatedProfile);
+      activeParent=current.name;stopGameLoop();
+      document.getElementById("home-session-label").textContent=`دخول الوالد/ة: ${current?current.name:""}`;
+      document.getElementById("auth-screen").classList.add("hidden");
+      document.getElementById("main-portal").classList.add("hidden");
+      document.getElementById("child-dashboard").classList.add("hidden");
+      document.getElementById("parent-dashboard").classList.remove("hidden");
+      document.getElementById("parent-title").textContent=`لوحة ${activeParent}`;
+      renderParentDashboard();
+    }
+    function goBackToMain(){
+      if(!isParentAuthenticated()){logout();return;}
+      stopGameLoop();activeChild=null;
+      document.getElementById("auth-screen").classList.add("hidden");
+      document.getElementById("main-portal").classList.remove("hidden");
+      document.getElementById("child-dashboard").classList.add("hidden");
+      document.getElementById("parent-dashboard").classList.add("hidden");
+      const current=profiles.find(profile=>profile.id===authenticatedProfile);
+      document.getElementById("home-session-label").textContent=`دخول الوالد/ة: ${current?current.name:""}`;
+      updateHome();
+    }
+    function switchTab(tab){
+      activeTab=tab;stopGameLoop();
+      for(const key of ["tasks","activities","games"]){
+        document.getElementById(`tab-${key}`).classList.toggle("hidden",key!==tab);
+        document.getElementById(`tab-btn-${key}`).classList.toggle("active",key===tab);
+      }
+      if(tab==="games")renderGames();
+    }
+    function renderTasks(){
+      if(!activeChild)return;
+      const name=activeChild;
+      document.getElementById("tasks-container").innerHTML=getTasks(name).map(task=>{
+        const done=appState.completed[name].includes(task.id);
+        return `<label class="task-row ${done?"is-done":""} flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 transition">
+          <input class="h-6 w-6 accent-emerald-400" type="checkbox" ${done?"checked":""} onchange="toggleTask('${escapeHTML(task.id)}',this.checked)">
+          <span class="task-name flex-1 font-bold">${escapeHTML(task.title)}</span><span class="rounded-full bg-amber-300/10 px-2 py-1 text-xs font-bold text-amber-200">⭐ ${task.stars}</span>
+        </label>`;
+      }).join("");
+      updateChildStars();updateHome();
+    }
+    function playClickSound(){
+      try{
+        audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();
+        const osc=audioContext.createOscillator(),gain=audioContext.createGain();
+        osc.type="sine";osc.frequency.value=720;gain.gain.setValueAtTime(.08,audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime+.16);
+        osc.connect(gain);gain.connect(audioContext.destination);osc.start();osc.stop(audioContext.currentTime+.16);
+      }catch(error){console.warn("تعذر تشغيل صوت التفاعل:",error);}
+    }
+    function toggleTask(id,checked){
+      const list=appState.completed[activeChild],index=list.indexOf(id);
+      if(checked&&index<0){list.push(id);playClickSound();showConfetti(12);}
+      if(!checked&&index>=0)list.splice(index,1);
+      saveState();renderTasks();
+    }
+    function updateChildStars(){
+      if(activeChild)document.getElementById("child-stars").textContent=`⭐ ${completedStars(activeChild)} نجمة`;
+    }
+    function renderActivities(){
+      if(!activeChild)return;
+      document.getElementById("activities-container").innerHTML=getActivities(activeChild).map(item=>{
+        const done=appState.activityDone[activeChild].includes(item.id);
+        return `<article class="rounded-2xl border border-white/10 bg-white/5 p-4"><div class="mb-2 text-3xl">${item.emoji}</div>
+          <h4 class="font-extrabold">${escapeHTML(item.title)}</h4><p class="my-2 text-sm text-indigo-100/75">${escapeHTML(item.text)}</p>
+          <button type="button" ${done?"disabled":""} onclick="completeActivity('${escapeHTML(item.id)}')" class="soft-button w-full rounded-xl ${done?"bg-emerald-900/60 text-emerald-100":"bg-violet-600 text-white"} px-3 py-2 font-bold">${done?"تم الإنجاز ✓":"أنجزت النشاط ⭐ +٤"}</button></article>`;
+      }).join("");
+    }
+    function completeActivity(id){
+      const list=appState.activityDone[activeChild];if(list.includes(id))return;
+      list.push(id);saveState();renderActivities();updateChildStars();updateHome();playClickSound();showConfetti(18);
+    }
+    function refreshDailyTasks(){
+      if(!confirm("سيتم اختيار قائمة مهام وأنشطة جديدة لهذا اليوم وإلغاء علامات الإنجاز الحالية. هل تريد المتابعة؟"))return;
+      appState.rotation[activeChild]++;appState.completed[activeChild]=[];appState.activityDone[activeChild]=[];
+      saveState();renderTasks();renderActivities();
+    }
+    function submitDayTasks(){
+      const name=activeChild,tasks=getTasks(name),done=tasks.filter(task=>appState.completed[name].includes(task.id)).length;
+      const activitiesDone=getActivities(name).filter(item=>appState.activityDone[name].includes(item.id)).length;
+      appState.notifications.unshift({id:`note-${Date.now()}`,child:name,from:name,message:`أرسل ${name} إنجاز اليوم: ${done} من ${tasks.length} مهمة، وأنجز ${activitiesDone} نشاطاً، ورصيده ${completedStars(name)} نجمة.`,time:new Date().toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"}),read:false});
+      saveState();updateHome();
+      alert(`وصل إنجازك إلى الأب والأم! أحسنت يا ${name} 🚀`);
+    }
+    function sendChildRequest(event){
+      event.preventDefault();
+      const input=document.getElementById("child-request"),message=input.value.trim();
+      if(!message)return;
+      appState.notifications.unshift({id:`request-${Date.now()}`,child:activeChild,message:`طلب ${activeChild}: ${message}`,time:new Date().toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"}),read:false});
+      saveState();updateHome();input.value="";
+      alert("وصل طلبك إلى الأب والأم 💌");
+    }
+    function renderParentDashboard(){
+      const notes=document.getElementById("parent-notifications");
+      const unread=appState.notifications.filter(note=>!note.read);
+      notes.innerHTML=appState.notifications.length?appState.notifications.slice(0,20).map(note=>`<article class="rounded-2xl border ${note.read?"border-white/10 bg-white/5":"border-sky-300/30 bg-sky-400/10"} p-4">
+        <div class="mb-2 flex flex-wrap items-center justify-between gap-2"><strong>${childIcons[note.child]||"✨"} ${escapeHTML(note.child)}</strong><small class="text-indigo-100/60">${escapeHTML(note.time||"")}</small></div>
+        <p class="text-sm text-indigo-50">${escapeHTML(note.message)}</p>
+        ${note.read?'<span class="mt-2 inline-block text-xs text-emerald-200">تمت المراجعة ✓</span>':`<button type="button" onclick="markNotificationRead('${escapeHTML(note.id)}')" class="soft-button mt-3 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold">تمت المراجعة ✓</button>`}
+      </article>`).join(""):`<p class="rounded-xl bg-white/5 p-4 text-sm text-indigo-100/70">لا توجد إشعارات بعد. ستظهر هنا إنجازات الأطفال فور إرسالها.</p>`;
+      if(unread.length===0&&appState.notifications.length)notes.insertAdjacentHTML("afterbegin",'<p class="mb-2 text-sm text-emerald-200">كل الإشعارات تمت مراجعتها ✅</p>');
+      document.getElementById("parent-tables").innerHTML=children.map(name=>{
+        const tasks=getTasks(name),doneCount=tasks.filter(task=>appState.completed[name].includes(task.id)).length;
+        return `<article class="glass rounded-3xl p-4">
+          <div class="mb-3 flex items-center justify-between"><h4 class="text-lg font-black">${childIcons[name]} ${name}</h4><span class="text-sm font-bold text-amber-200">⭐ ${completedStars(name)}</span></div>
+          <p class="mb-3 text-xs text-indigo-100/70">الإنجاز ${doneCount}/${tasks.length} · ${progressFor(name)}%</p>
+          <div class="scroll-panel mb-4 space-y-2">${tasks.map(task=>`<div class="flex items-center justify-between gap-2 rounded-xl ${appState.completed[name].includes(task.id)?"bg-emerald-900/40":"bg-white/5"} px-3 py-2 text-xs">
+            <span>${appState.completed[name].includes(task.id)?"✅":"◯"} ${escapeHTML(task.title)}</span><span class="whitespace-nowrap text-amber-200">⭐${task.stars}</span></div>`).join("")}</div>
+          <form onsubmit="addSpecialTask(event,'${name}')" class="mb-4 rounded-xl border border-white/10 bg-white/5 p-3">
+            <label class="mb-2 block text-xs font-bold" for="task-input-${name}">إضافة مهمة خاصة</label>
+            <div class="flex gap-2"><input id="task-input-${name}" maxlength="70" required placeholder="اكتب المهمة" class="min-w-0 flex-1 rounded-lg border border-white/15 bg-slate-950/50 px-2 py-2 text-xs text-white placeholder:text-slate-400">
+            <button class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold" type="submit">إضافة</button></div>
+          </form>
+          <div class="rounded-xl border border-white/10 bg-white/5 p-3">
+            <label class="mb-2 block text-xs font-bold" for="gift-${name}">إرسال هدية فورية</label>
+            <div class="flex gap-2"><select id="gift-${name}" class="min-w-0 flex-1 rounded-lg border border-white/15 bg-slate-950 px-2 py-2 text-xs text-white">${giftOptions.map((gift,i)=>`<option value="${i}">${gift.label}</option>`).join("")}</select>
+            <button type="button" onclick="sendGift('${name}')" class="soft-button rounded-lg bg-pink-600 px-3 py-2 text-xs font-bold">إرسال 🎁</button></div>
+          </div>
+        </article>`;
+      }).join("");
+      updateParentBadges();
+      renderPinManagement();
+    }
+    function markNotificationRead(id){
+      const note=appState.notifications.find(item=>item.id===id);if(!note)return;
+      note.read=true;saveState();renderParentDashboard();updateHome();
+    }
+    function addSpecialTask(event,name){
+      event.preventDefault();
+      const input=document.getElementById(`task-input-${name}`),title=input.value.trim();
+      if(!title)return;
+      appState.extraTasks[name].push({id:`special-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,title,stars:5});
+      saveState();renderParentDashboard();updateHome();
+    }
+    function sendGift(name){
+      const select=document.getElementById(`gift-${name}`),gift=giftOptions[Number(select.value)];
+      if(!gift){showStorageWarning("لم نتمكن من اختيار الهدية. حاول مرة أخرى.");return;}
+      appState.gifts[name].push({emoji:gift.emoji,from:activeParent,time:Date.now(),seen:false});
+      if(gift.stars)appState.giftStars[name]+=gift.stars;
+      if(appState.gifts[name].length>40)appState.gifts[name].splice(0,appState.gifts[name].length-40);
+      saveState();renderParentDashboard();updateHome();showConfetti(45);
+      alert(`تم إرسال ${gift.label} إلى ${name} 🎉`);
+    }
+    function renderGames(){
+      stopGameLoop();
+      document.getElementById("games-heading").textContent=`ألعاب تناسب عمر ${ages[activeChild]} سنوات 🎮`;
+      document.getElementById("games-container").innerHTML=gameList.map(game=>`<button type="button" onclick="startGame('${game.id}')" class="soft-button rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/60 to-violet-700/70 p-4 text-right">
+        <span class="text-3xl">${game.emoji}</span><strong class="mt-2 block text-lg">${game.title}</strong><span class="mt-1 block text-sm text-indigo-50/80">${game.description}</span>
+      </button>`).join("");
+      document.getElementById("game-play-area").innerHTML="";
+    }
+    function startGame(id){
+      stopGameLoop();
+      const area=document.getElementById("game-play-area");
+      if(id==="balloons")startBalloonGame(area);
+      else if(id==="puzzle")startPuzzleGame(area);
+      else if(id==="memory")startMemoryGame(area);
+      else if(id==="quiz")startQuizGame(area);
+    }
+    function gameShell(title,content){return `<section class="rounded-3xl border border-violet-200/20 bg-slate-950/50 p-4 sm:p-5"><div class="mb-4 flex flex-wrap items-center justify-between gap-2"><h4 class="text-lg font-black">${title}</h4><button type="button" onclick="renderGames()" class="rounded-lg bg-white/10 px-3 py-2 text-sm font-bold">اختيار لعبة أخرى</button></div>${content}</section>`;}
+    function startBalloonGame(area){
+      area.innerHTML=gameShell("🎈 فرقعة البالونات",'<div class="mb-3 flex justify-between font-bold"><span>النقاط: <b id="balloon-score">٠</b></span><span>الوقت: <b id="balloon-time">٢٥</b> ث</span></div><canvas id="balloon-canvas" aria-label="اضغط على البالونات الملونة لجمع النقاط" class="w-full rounded-2xl bg-gradient-to-b from-sky-950 to-indigo-950" style="height:340px;touch-action:manipulation"></canvas><p class="mt-2 text-center text-sm text-indigo-100/70">اضغط على البالونات قبل أن تطير بعيداً!</p><div id="balloon-result" class="mt-3 text-center font-bold"></div>');
+      const canvas=document.getElementById("balloon-canvas"),ctx=canvas.getContext("2d");
+      let width=canvas.clientWidth,height=340,score=0,balloons=[],lastSpawn=0,start=performance.now(),last=0,ended=false;
+      const colors=["#fb7185","#fbbf24","#4ade80","#60a5fa","#c084fc","#2dd4bf"];
+      function resize(){const rect=canvas.getBoundingClientRect();width=rect.width;canvas.width=Math.floor(width);canvas.height=height;}
+      resize();
+      const observer=new ResizeObserver(resize);observer.observe(canvas);
+      gameCleanup=()=>observer.disconnect();
+      canvas.addEventListener("pointerdown",event=>{
+        if(ended)return;
+        const rect=canvas.getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top;
+        for(let i=balloons.length-1;i>=0;i--){
+          const b=balloons[i],dx=x-b.x,dy=y-b.y;
+          if(dx*dx+dy*dy<(b.r+8)*(b.r+8)){balloons.splice(i,1);score++;document.getElementById("balloon-score").textContent=score.toLocaleString("ar");playClickSound();return;}
+        }
+      });
+      function frame(now){
+        gameLoopId=requestAnimationFrame(frame);
+        const dt=Math.min((now-last)/1000,.04);last=now;
+        const remaining=Math.max(0,25-(now-start)/1000);
+        document.getElementById("balloon-time").textContent=Math.ceil(remaining).toLocaleString("ar");
+        ctx.clearRect(0,0,width,height);
+        if(now-lastSpawn>650&&remaining>0){lastSpawn=now;const symbol=ages[activeChild]>=9?String(Math.floor(Math.random()*9)+1):ages[activeChild]>=7?["أ","ب","ت","ث","ج"][Math.floor(Math.random()*5)]:["🔴","🔵","🟡","🟢"][Math.floor(Math.random()*4)];balloons.push({x:25+Math.random()*Math.max(1,width-50),y:height+35,r:21+Math.random()*12,speed:45+Math.random()*60,color:colors[Math.floor(Math.random()*colors.length)],symbol});}
+        for(const b of balloons){b.y-=b.speed*dt;ctx.beginPath();ctx.ellipse(b.x,b.y,b.r*.82,b.r,b.r*.08,0,Math.PI*2);ctx.fillStyle=b.color;ctx.fill();ctx.strokeStyle="#ffffffaa";ctx.lineWidth=2;ctx.stroke();ctx.beginPath();ctx.moveTo(b.x-4,b.y+b.r*.9);ctx.lineTo(b.x+5,b.y+b.r*1.35);ctx.strokeStyle="#ffffff88";ctx.stroke();ctx.fillStyle="#fff";ctx.font="bold 20px Cairo";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(b.symbol,b.x,b.y);}
+        balloons=balloons.filter(b=>b.y+b.r>0);
+        if(remaining<=0){ended=true;cancelAnimationFrame(gameLoopId);gameLoopId=null;if(gameCleanup){gameCleanup();gameCleanup=null;}document.getElementById("balloon-result").innerHTML=`انتهى الوقت! جمعت ${score} نقطة 🎉 <button onclick="startGame('balloons')" class="mr-2 rounded-lg bg-violet-600 px-3 py-2">العب ثانية</button>`;}
+      }
+      gameLoopId=requestAnimationFrame(frame);
+    }
+    function drawPuzzleImage(){
+      const canvas=document.createElement("canvas");canvas.width=500;canvas.height=500;
+      const c=canvas.getContext("2d");
+      const sky=c.createLinearGradient(0,0,0,500);sky.addColorStop(0,"#62c6ff");sky.addColorStop(1,"#e0f6ff");c.fillStyle=sky;c.fillRect(0,0,500,500);
+      c.fillStyle="#ffd44d";c.beginPath();c.arc(390,100,53,0,Math.PI*2);c.fill();
+      c.fillStyle="#55c875";c.beginPath();c.ellipse(80,400,210,120,-.15,0,Math.PI*2);c.ellipse(380,420,230,130,.05,0,Math.PI*2);c.fill();
+      c.fillStyle="#f59465";c.fillRect(185,245,145,145);c.fillStyle="#ba5c55";c.beginPath();c.moveTo(165,250);c.lineTo(255,175);c.lineTo(350,250);c.fill();
+      c.fillStyle="#fff1bc";c.fillRect(215,285,37,48);c.fillRect(268,285,37,48);c.fillStyle="#81564d";c.fillRect(240,340,38,50);
+      for(let i=0;i<9;i++){const x=35+i*55,y=430-(i%3)*23;c.fillStyle=["#ff70a6","#ffe36e","#a78bfa"][i%3];c.beginPath();c.arc(x,y,13,0,Math.PI*2);c.fill();c.fillStyle="#f8fff0";c.fillRect(x-2,y+12,4,29);}
+      c.fillStyle="#25335d";c.font="bold 30px Cairo";c.textAlign="center";c.fillText("حديقة الأصدقاء",250,475);
+      return canvas.toDataURL();
+    }
+    function startPuzzleGame(area){
+      const n=ages[activeChild]===5?3:ages[activeChild]===7?4:5;
+      let order=Array.from({length:n*n},(_,i)=>i);
+      for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+      if(order.every((value,index)=>value===index))[order[0],order[1]]=[order[1],order[0]];
+      let selected=-1,moves=0;
+      const image=drawPuzzleImage();
+      area.innerHTML=gameShell("🧩 تركيب صورة الحديقة",`<p class="mb-3 text-sm text-indigo-100/80">المستوى ${n} × ${n} · اضغط قطعتين لتبديل مكانيهما.</p><div id="puzzle-grid" class="mx-auto grid max-w-md gap-1.5" style="grid-template-columns:repeat(${n},minmax(0,1fr))"></div><p id="puzzle-status" class="mt-3 text-center font-bold" aria-live="polite">الحركات: ٠</p>`);
+      const grid=document.getElementById("puzzle-grid");
+      function render(){
+        grid.innerHTML=order.map((tile,pos)=>{
+          const row=Math.floor(tile/n),col=tile%n,px=n===1?0:col/(n-1)*100,py=n===1?0:row/(n-1)*100;
+          return `<button type="button" aria-label="قطعة رقم ${pos+1}" class="game-tile ${selected===pos?"!border-yellow-300 !ring-2 !ring-yellow-300":""}" style="background-image:url('${image}');background-size:${n*100}% ${n*100}%;background-position:${px}% ${py}%"></button>`;
+        }).join("");
+        grid.querySelectorAll("button").forEach((button,pos)=>button.addEventListener("click",()=>{
+          if(selected===-1){selected=pos;render();return;}
+          if(selected!==pos){[order[selected],order[pos]]=[order[pos],order[selected]];moves++;}
+          selected=-1;render();
+          const solved=order.every((value,index)=>value===index);
+          document.getElementById("puzzle-status").textContent=solved?`أحسنت! اكتملت الصورة في ${moves} حركة 🎉`:`الحركات: ${moves.toLocaleString("ar")}${selected===-1?"":" · اختر القطعة الثانية"}`;
+          if(solved)showConfetti(35);
+        }));
+      }
+      render();
+    }
+    function startMemoryGame(area){
+      const pairs=ages[activeChild]===5?4:ages[activeChild]===7?6:8;
+      const symbols=["🐼","🍓","🚀","🐬","🍉","🦊","⭐","🐢","🍋","🦋"];
+      const cards=[...symbols.slice(0,pairs),...symbols.slice(0,pairs)].sort(()=>Math.random()-.5).map((symbol,index)=>({symbol,index,open:false,matched:false}));
+      let open=[],moves=0,locked=false;
+      area.innerHTML=gameShell("🧠 الذاكرة الذكية",`<p id="memory-status" class="mb-3 text-sm text-indigo-100/80">اعثر على ${pairs} أزواج متشابهة.</p><div id="memory-grid" class="grid gap-2" style="grid-template-columns:repeat(4,minmax(0,1fr))"></div>`);
+      const grid=document.getElementById("memory-grid");
+      function render(){
+        grid.innerHTML=cards.map((card,index)=>`<button type="button" ${card.matched||card.open?"disabled":""} aria-label="${card.open||card.matched?card.symbol:"بطاقة مخفية"}" class="memory-card ${card.open||card.matched?"revealed":""}" ${card.matched?'style="opacity:.62"':""}>${card.open||card.matched?card.symbol:"؟"}</button>`).join("");
+        grid.querySelectorAll("button").forEach((button,index)=>button.addEventListener("click",()=>flip(index)));
+      }
+      function flip(index){
+        if(locked||cards[index].open||cards[index].matched)return;
+        cards[index].open=true;open.push(index);render();
+        if(open.length===2){
+          moves++;locked=true;
+          if(cards[open[0]].symbol===cards[open[1]].symbol){cards[open[0]].matched=true;cards[open[1]].matched=true;open=[];locked=false;}
+          else setTimeout(()=>{cards[open[0]].open=false;cards[open[1]].open=false;open=[];locked=false;render();},700);
+        }
+        const matched=cards.filter(card=>card.matched).length/2;
+        document.getElementById("memory-status").textContent=matched===pairs?`وجدت كل الأزواج في ${moves} محاولة! أحسنت 🎉`:`الأزواج: ${matched.toLocaleString("ar")}/${pairs.toLocaleString("ar")} · المحاولات: ${moves.toLocaleString("ar")}`;
+        if(matched===pairs)showConfetti(32);
+      }
+      render();
+    }
+    function startQuizGame(area){
+      const questions=quizBank[activeChild].slice().sort(()=>Math.random()-.5);
+      let index=0,score=0,answered=false;
+      area.innerHTML=gameShell("💡 تحدي الذكاء",'<div id="quiz-content"></div>');
+      function render(){
+        const content=document.getElementById("quiz-content");
+        if(index>=questions.length){content.innerHTML=`<div class="py-6 text-center"><div class="text-5xl">🏅</div><h5 class="mt-3 text-2xl font-black">أحسنت يا ${activeChild}!</h5><p class="mt-2">إجابات صحيحة: ${score} من ${questions.length}</p><button onclick="startGame('quiz')" class="mt-4 rounded-xl bg-violet-600 px-5 py-3 font-bold">العب مرة أخرى</button></div>`;if(score>=3)showConfetti(35);return;}
+        const item=questions[index];
+        content.innerHTML=`<p class="mb-2 text-sm text-indigo-100/70">السؤال ${index+1} من ${questions.length}</p><h5 class="mb-4 text-xl font-extrabold">${item.q}</h5><div class="grid gap-2 sm:grid-cols-3">${item.options.map((option,i)=>`<button type="button" ${answered?"disabled":""} data-answer="${i}" class="rounded-xl border border-white/10 bg-white/10 p-3 font-bold hover:bg-white/20 disabled:opacity-70">${option}</button>`).join("")}</div><p id="quiz-feedback" class="mt-4 text-center font-bold" aria-live="polite"></p>`;
+        content.querySelectorAll("[data-answer]").forEach(button=>button.addEventListener("click",()=>answer(Number(button.dataset.answer))));
+      }
+      function answer(choice){
+        if(answered)return;answered=true;const correct=choice===questions[index].a;if(correct)score++;
+        const feedback=document.getElementById("quiz-feedback");
+        feedback.innerHTML=`<span class="${correct?"text-emerald-200":"text-amber-200"}">${correct?"إجابة صحيحة! 🌟":`الإجابة الصحيحة: ${escapeHTML(questions[index].options[questions[index].a])}`}</span><button type="button" class="mr-3 rounded-lg bg-violet-600 px-3 py-2" id="quiz-next">${index===questions.length-1?"النتيجة":"السؤال التالي"}</button>`;
+        document.getElementById("quiz-next").addEventListener("click",()=>{index++;answered=false;render();});
+      }
+      render();
+    }
+    function showConfetti(count){
+      const layer=document.getElementById("confetti-layer"),colors=["#f472b6","#facc15","#34d399","#60a5fa","#c084fc"];
+      for(let i=0;i<count;i++){
+        const piece=document.createElement("i");piece.className="confetti-piece";piece.style.left=`${Math.random()*100}%`;piece.style.backgroundColor=colors[i%colors.length];piece.style.setProperty("--drift",`${Math.random()*180-90}px`);piece.style.animationDelay=`${Math.random()*.7}s`;layer.appendChild(piece);setTimeout(()=>piece.remove(),3600);
+      }
+    }
+    function initSpace(){
+      const canvas=document.getElementById("space-canvas"),ctx=canvas.getContext("2d");
+      let width=0,height=0,stars=[],orbs=[];
+      const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function resize(){
+        const dpr=Math.min(window.devicePixelRatio||1,2);width=window.innerWidth;height=window.innerHeight;
+        canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+        stars=Array.from({length:Math.min(180,Math.floor(width*height/6500))},()=>({x:Math.random()*width,y:Math.random()*height,r:.4+Math.random()*1.7,phase:Math.random()*6.28,speed:.7+Math.random()*1.8}));
+        orbs=Array.from({length:7},(_,i)=>({x:Math.random()*width,y:Math.random()*height,r:30+Math.random()*85,vx:(Math.random()-.5)*.23,vy:(Math.random()-.5)*.2,hue:190+i*27}));
+      }
+      function frame(time){
+        ctx.clearRect(0,0,width,height);
+        for(const star of stars){const glow=reduced?.7:.45+.55*Math.sin(time*.001*star.speed+star.phase);ctx.beginPath();ctx.arc(star.x,star.y,star.r,0,Math.PI*2);ctx.fillStyle=`rgba(235,240,255,${glow})`;ctx.shadowBlur=star.r*7;ctx.shadowColor="#b9ccff";ctx.fill();}
+        ctx.shadowBlur=0;
+        for(const orb of orbs){
+          const gradient=ctx.createRadialGradient(orb.x-orb.r*.25,orb.y-orb.r*.3,1,orb.x,orb.y,orb.r);
+          gradient.addColorStop(0,`hsla(${orb.hue},95%,70%,.11)`);gradient.addColorStop(1,`hsla(${orb.hue},95%,50%,0)`);
+          ctx.fillStyle=gradient;ctx.beginPath();ctx.arc(orb.x,orb.y,orb.r,0,Math.PI*2);ctx.fill();
+          if(!reduced){orb.x+=orb.vx;orb.y+=orb.vy;if(orb.x<-orb.r)orb.x=width+orb.r;if(orb.x>width+orb.r)orb.x=-orb.r;if(orb.y<-orb.r)orb.y=height+orb.r;if(orb.y>height+orb.r)orb.y=-orb.r;}
+        }
+        requestAnimationFrame(frame);
+      }
+      resize();window.addEventListener("resize",resize);requestAnimationFrame(frame);
+    }
+    document.addEventListener("DOMContentLoaded",()=>{
+      initSpace();initializeAuthentication();updateHome();renderParentDashboard();switchTab("tasks");
+    });
+  </script>
+</body>
+</html>

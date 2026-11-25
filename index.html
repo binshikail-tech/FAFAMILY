@@ -29,6 +29,12 @@
     .tab-button.active{background:#7561ee;color:white;border-color:#a89cff}
     .tab-button{background:#18234b;border:1px solid #ffffff20;color:#dce1ff}
     .game-tile{aspect-ratio:1;border:2px solid #fff9;border-radius:12px;background-repeat:no-repeat;cursor:pointer;min-width:0}
+    #games-container>button{position:relative;isolation:isolate;overflow:hidden;min-height:150px;box-shadow:inset 0 1px #ffffff30,0 12px 28px #06091d55}
+    #games-container>button::before{content:"";position:absolute;inset:auto -25px -55px auto;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,#ffffff35,transparent 68%);z-index:-1;transition:transform .3s}
+    #games-container>button:hover::before{transform:scale(1.35)}
+    .game-art{display:grid;place-items:center;width:58px;height:58px;border:1px solid #ffffff35;border-radius:20px;background:linear-gradient(145deg,#ffffff30,#ffffff08);box-shadow:0 8px 18px #080d2655}
+    .game-board{background:radial-gradient(ellipse at top,#28366e,#101733 72%);border:1px solid #c7d2fe26}
+    .game-choice{transition:transform .15s,background .15s}.game-choice:hover{transform:translateY(-2px);background:#ffffff20}
     .memory-card{min-height:76px;font-size:clamp(1.6rem,5vw,2.4rem);background:linear-gradient(145deg,#584bd0,#9479ff);border:2px solid #c5baff;border-radius:14px}
     .memory-card.revealed{background:#fff;color:#161a38}
     #confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:20;overflow:hidden}
@@ -48,20 +54,20 @@
   <main id="app" class="mx-auto max-w-7xl px-4 py-6 sm:px-7 sm:py-9">
     <div id="storage-warning" class="hidden mb-4 rounded-xl border border-amber-300/40 bg-amber-950/80 p-3 text-sm text-amber-100" role="status"></div>
 
-    <section id="auth-screen" class="mx-auto hidden max-w-4xl py-6">
+    <section id="auth-screen" class="mx-auto hidden max-w-5xl py-6">
       <header class="mb-7 text-center">
         <div class="mb-3 inline-flex rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-bold text-violet-100">🔐 دخول عائلة آل ياسر</div>
         <h1 class="title-glow text-4xl font-black sm:text-5xl">مرحباً بكم في منصتكم</h1>
         <p class="mt-3 text-indigo-100/80">اضغط على بطاقتك ثم اكتب رمزك السري.</p>
       </header>
-      <div class="mx-auto grid max-w-2xl grid-cols-2 gap-4">
-        <button type="button" onclick="openPasswordPrompt('father')" class="portal-card glass focus-ring flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-t-4 border-t-sky-400 p-4 text-center"><span class="grid h-16 w-16 place-items-center rounded-2xl bg-sky-300/15 text-5xl">👨🏻</span><strong class="text-xl">بوابة الأب</strong></button>
-        <button type="button" onclick="openPasswordPrompt('mother')" class="portal-card glass focus-ring flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-t-4 border-t-pink-400 p-4 text-center"><span class="grid h-16 w-16 place-items-center rounded-2xl bg-pink-300/15 text-5xl">👩🏻</span><strong class="text-xl">بوابة الأم</strong></button>
+      <div class="mx-auto grid max-w-5xl grid-cols-2 gap-4 sm:gap-6">
+        <button type="button" onclick="openPasswordPrompt('father')" class="portal-card glass focus-ring flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-3xl border-t-8 border-t-sky-400 p-5 text-center sm:min-h-[260px]"><span class="grid h-24 w-24 place-items-center rounded-3xl bg-sky-300/15 text-7xl sm:h-32 sm:w-32 sm:text-8xl">👨🏻</span><strong class="text-2xl font-black sm:text-4xl">بوابة الأب</strong></button>
+        <button type="button" onclick="openPasswordPrompt('mother')" class="portal-card glass focus-ring flex min-h-[220px] flex-col items-center justify-center gap-4 rounded-3xl border-t-8 border-t-pink-400 p-5 text-center sm:min-h-[260px]"><span class="grid h-24 w-24 place-items-center rounded-3xl bg-pink-300/15 text-7xl sm:h-32 sm:w-32 sm:text-8xl">👩🏻</span><strong class="text-2xl font-black sm:text-4xl">بوابة الأم</strong></button>
       </div>
-      <div class="mx-auto mt-4 grid max-w-4xl grid-cols-3 gap-4">
-        <button type="button" onclick="openPasswordPrompt('saba')" class="portal-card glass focus-ring flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-t-4 border-t-fuchsia-400 p-3 text-center"><span class="grid h-16 w-16 place-items-center rounded-full bg-fuchsia-400/15 text-5xl">👧🏻</span><strong class="text-lg text-fuchsia-100 sm:text-2xl">الأميرة سبأ</strong></button>
-        <button type="button" onclick="openPasswordPrompt('yaser')" class="portal-card glass focus-ring flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-t-4 border-t-emerald-400 p-3 text-center"><span class="grid h-16 w-16 place-items-center rounded-full bg-emerald-400/15 text-5xl">🧒🏻</span><strong class="text-lg text-emerald-100 sm:text-2xl">البطل ياسر</strong></button>
-        <button type="button" onclick="openPasswordPrompt('moataz')" class="portal-card glass focus-ring flex min-h-36 flex-col items-center justify-center gap-2 rounded-3xl border-t-4 border-t-amber-300 p-3 text-center"><span class="grid h-16 w-16 place-items-center rounded-full bg-amber-300/15 text-5xl">👦🏻</span><strong class="text-lg text-amber-100 sm:text-2xl">البطل معتز</strong></button>
+      <div class="mx-auto mt-4 grid max-w-5xl grid-cols-3 gap-3 sm:mt-6 sm:gap-6">
+        <button type="button" onclick="openPasswordPrompt('saba')" class="portal-card glass focus-ring flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-3xl border-t-8 border-t-fuchsia-400 p-3 text-center sm:min-h-[240px]"><span class="grid h-20 w-20 place-items-center rounded-full bg-fuchsia-400/15 text-6xl sm:h-28 sm:w-28 sm:text-7xl">👧🏻</span><strong class="text-lg font-black text-fuchsia-100 sm:text-3xl">الأميرة سبأ</strong></button>
+        <button type="button" onclick="openPasswordPrompt('yaser')" class="portal-card glass focus-ring flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-3xl border-t-8 border-t-emerald-400 p-3 text-center sm:min-h-[240px]"><span class="grid h-20 w-20 place-items-center rounded-full bg-emerald-400/15 text-6xl sm:h-28 sm:w-28 sm:text-7xl">🧒🏻</span><strong class="text-lg font-black text-emerald-100 sm:text-3xl">البطل ياسر</strong></button>
+        <button type="button" onclick="openPasswordPrompt('moataz')" class="portal-card glass focus-ring flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-3xl border-t-8 border-t-amber-300 p-3 text-center sm:min-h-[240px]"><span class="grid h-20 w-20 place-items-center rounded-full bg-amber-300/15 text-6xl sm:h-28 sm:w-28 sm:text-7xl">👦🏻</span><strong class="text-lg font-black text-amber-100 sm:text-3xl">البطل معتز</strong></button>
       </div>
       <div id="password-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4" onclick="if(event.target===this)closePasswordPrompt()">
         <form onsubmit="loginWithPin(event)" class="glass w-full max-w-sm space-y-4 rounded-3xl p-6 text-center">
@@ -150,7 +156,7 @@
           <div><h3 class="text-xl font-extrabold">مهام اليوم 🌈</h3><p class="text-sm text-indigo-100/70">كل إنجاز يضيف نجوماً إلى رصيدك!</p></div>
           <button type="button" onclick="refreshDailyTasks()" class="soft-button rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-bold">🔄 تجديد مهام اليوم</button>
         </div>
-        <div id="tasks-container" class="space-y-2"></div>
+        <div id="tasks-container" class="space-y-3"></div>
         <button type="button" onclick="submitDayTasks()" class="soft-button mt-5 w-full rounded-2xl bg-gradient-to-l from-emerald-500 to-teal-500 px-5 py-4 text-lg font-extrabold shadow-lg">إرسال إنجازاتي للوالدين 🚀</button>
         <form onsubmit="sendChildRequest(event)" class="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
           <label for="child-request" class="mb-2 block font-bold">هل تحتاج إلى شيء؟ أرسل طلباً للوالدين 💌</label>
@@ -214,14 +220,24 @@
       {label:"🍫 قطعة شوكولاتة",emoji:"🍫",stars:0}
     ];
     const prayerNames = ["الفجر","الظهر","العصر","المغرب","العشاء"];
+    const taskGroups = [
+      {id:"prayers",icon:"🕌",title:"الصلوات",hint:"صلّ كل صلاة في وقتها"},
+      {id:"home",icon:"🧼",title:"المهام المنزلية والنظافة",hint:"نظافتي وترتيبي ومساعدة أهلي"},
+      {id:"meals",icon:"🍽️",title:"الوجبات اليومية",hint:"وجبات صحية وماء كافٍ"},
+      {id:"extra",icon:"🌟",title:"مهام إضافية لليوم",hint:"مهام متجددة ومهام خاصة من الوالدين"}
+    ];
     const standardTasks = [
-      ...prayerNames.map((name,index)=>({id:`prayer-${index}`,title:`صلاة ${name}`,stars:3})),
-      {id:"teeth",title:"تفريش الأسنان",stars:2},
-      {id:"breakfast",title:"تناول الريوق الصحي",stars:2},
-      {id:"lunch",title:"تناول الغداء الصحي",stars:2},
-      {id:"dinner",title:"تناول العشاء الصحي",stars:2},
-      {id:"bath",title:"الاستحمام والعناية بنظافتي",stars:3},
-      {id:"room",title:"ترتيب غرفتي",stars:3}
+      ...prayerNames.map((name,index)=>({id:`prayer-${index}`,group:"prayers",title:`صلاة ${name}`,stars:3})),
+      {id:"teeth",group:"home",title:"فرش الأسنان صباحاً",stars:2},
+      {id:"teeth-night",group:"home",title:"فرش الأسنان مساءً",stars:2},
+      {id:"bath",group:"home",title:"الاستحمام والعناية بنظافتي",stars:3},
+      {id:"bed",group:"home",title:"ترتيب السرير",stars:2},
+      {id:"room",group:"home",title:"ترتيب غرفتي",stars:3},
+      {id:"help-parent",group:"home",title:"مساعدة الأم أو الأب",stars:3},
+      {id:"breakfast",group:"meals",title:"الريوق / الإفطار الصحي",stars:2},
+      {id:"lunch",group:"meals",title:"الغداء الصحي",stars:2},
+      {id:"dinner",group:"meals",title:"العشاء الصحي",stars:2},
+      {id:"water",group:"meals",title:"شرب الماء",stars:2}
     ];
     const rotatingTasks = {
       "سبأ":[["قراءة قصة مفيدة","مساعدة في تجهيز المائدة"],["مراجعة دروسي","ترتيب مكتبي"],["رسم لوحة جميلة","سقي النباتات"],["مساعدة أمي في المطبخ","قراءة عشر صفحات"],["ترتيب ملابسي","مراجعة واجباتي"],["كتابة كلمة شكر","مساعدة في ترتيب الصالة"],["اختيار كتاب جديد","تنظيم أدواتي"]],
@@ -264,7 +280,9 @@
       {id:"balloons",emoji:"🎈",title:"فرقعة البالونات",description:"الحق بالبالونات واجمع النقاط قبل انتهاء الوقت!"},
       {id:"puzzle",emoji:"🧩",title:"تركيب الصورة",description:"بدّل أماكن القطع حتى تكتمل صورة الحديقة."},
       {id:"memory",emoji:"🧠",title:"الذاكرة الذكية",description:"اكشف البطاقات واعثر على الأزواج المتشابهة."},
-      {id:"quiz",emoji:"💡",title:"تحدي الذكاء والحساب",description:"أسئلة وألغاز مناسبة لعمرك."}
+      {id:"quiz",emoji:"💡",title:"تحدي الذكاء والحساب",description:"أسئلة وألغاز مناسبة لعمرك."},
+      {id:"sequence",emoji:"🧠",title:"ذاكرة الألوان",description:"راقب التسلسل وأعد الألوان بالترتيب الصحيح."},
+      {id:"math",emoji:"🔢",title:"سباق الأرقام",description:"حل أسئلة سريعة واجمع النقاط قبل انتهاء الوقت."}
     ];
     const todayKey = () => {
       const d=new Date();
@@ -308,7 +326,7 @@
     function showStorageWarning(message){const node=document.getElementById("storage-warning");node.textContent=message;node.classList.remove("hidden");}
     function escapeHTML(value){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));}
     /* الرموز السرية الافتراضية — عدّلها هنا بسهولة. (يمكن للوالدين تغييرها لاحقاً من لوحتهما وتُحفظ على الجهاز) */
-    const DEFAULT_PINS={father:"1234",mother:"1234",saba:"111",yaser:"222",moataz:"333"};
+    const DEFAULT_PINS={father:"1234",mother:"1234",saba:"1234",yaser:"1234",moataz:"1234"};
     let pendingProfile=null;
     function loadAuthData(){
       const pins={...DEFAULT_PINS};
@@ -408,7 +426,7 @@
     function getTasks(name){
       ensureCurrentDay();
       const rotation=appState.rotation[name];
-      const extras=rotatingTasks[name][(dayIndex()+rotation)%7].map((title,i)=>({id:`rotate-${rotation}-${i}`,title,stars:3}));
+      const extras=rotatingTasks[name][(dayIndex()+rotation)%7].map((title,i)=>({id:`rotate-${rotation}-${i}`,group:"extra",title,stars:3}));
       return [...standardTasks,...extras,...appState.extraTasks[name]];
     }
     function getActivities(name){
@@ -500,14 +518,35 @@
     function renderTasks(){
       if(!activeChild)return;
       const name=activeChild;
-      document.getElementById("tasks-container").innerHTML=getTasks(name).map(task=>{
-        const done=appState.completed[name].includes(task.id);
-        return `<label class="task-row ${done?"is-done":""} flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 transition">
-          <input class="h-6 w-6 accent-emerald-400" type="checkbox" ${done?"checked":""} onchange="toggleTask('${escapeHTML(task.id)}',this.checked)">
-          <span class="task-name flex-1 font-bold">${escapeHTML(task.title)}</span><span class="rounded-full bg-amber-300/10 px-2 py-1 text-xs font-bold text-amber-200">⭐ ${task.stars}</span>
-        </label>`;
+      const all=getTasks(name);
+      document.getElementById("tasks-container").innerHTML=taskGroups.map(group=>{
+        const items=all.filter(task=>(task.group||"extra")===group.id);
+        if(!items.length)return "";
+        const doneCount=items.filter(task=>appState.completed[name].includes(task.id)).length;
+        const isOpen=openTaskGroups.has(group.id),complete=doneCount===items.length;
+        const rows=items.map(task=>{
+          const done=appState.completed[name].includes(task.id);
+          return `<label class="task-row ${done?"is-done":""} flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 transition">
+            <input class="h-7 w-7 shrink-0 accent-emerald-400" type="checkbox" ${done?"checked":""} onchange="toggleTask('${escapeHTML(task.id)}',this.checked)">
+            <span class="task-name flex-1 font-bold">${escapeHTML(task.title)}</span><span class="rounded-full bg-amber-300/10 px-2 py-1 text-xs font-bold text-amber-200">⭐ ${task.stars}</span>
+          </label>`;
+        }).join("");
+        return `<section class="overflow-hidden rounded-2xl border ${complete?"border-emerald-400/60":"border-white/15"} bg-white/5">
+          <button type="button" aria-expanded="${isOpen}" onclick="toggleTaskGroup('${group.id}')" class="focus-ring flex w-full items-center gap-3 p-4 text-right transition hover:bg-white/5">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/10 text-3xl">${group.icon}</span>
+            <span class="min-w-0 flex-1"><strong class="block text-lg font-black">${group.title}${complete?" ✅":""}</strong><small class="block text-indigo-100/70">${group.hint}</small></span>
+            <span class="rounded-full bg-black/25 px-3 py-1 text-sm font-extrabold">${doneCount}/${items.length}</span>
+            <span class="inline-block text-xl transition-transform ${isOpen?"rotate-180":""}" aria-hidden="true">▾</span>
+          </button>
+          <div class="${isOpen?"":"hidden"} space-y-2 border-t border-white/10 p-3">${rows}</div>
+        </section>`;
       }).join("");
       updateChildStars();updateHome();
+    }
+    const openTaskGroups=new Set(["prayers"]);
+    function toggleTaskGroup(id){
+      if(openTaskGroups.has(id))openTaskGroups.delete(id);else openTaskGroups.add(id);
+      renderTasks();
     }
     function playClickSound(){
       try{
@@ -614,8 +653,8 @@
     function renderGames(){
       stopGameLoop();
       document.getElementById("games-heading").textContent=`ألعاب تناسب عمر ${ages[activeChild]} سنوات 🎮`;
-      document.getElementById("games-container").innerHTML=gameList.map(game=>`<button type="button" onclick="startGame('${game.id}')" class="soft-button rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/60 to-violet-700/70 p-4 text-right">
-        <span class="text-3xl">${game.emoji}</span><strong class="mt-2 block text-lg">${game.title}</strong><span class="mt-1 block text-sm text-indigo-50/80">${game.description}</span>
+      document.getElementById("games-container").innerHTML=gameList.map((game,index)=>`<button type="button" onclick="startGame('${game.id}')" class="soft-button rounded-2xl border border-white/10 bg-gradient-to-br ${["from-rose-500/40 to-violet-700/80","from-sky-500/40 to-indigo-800/80","from-emerald-500/40 to-teal-800/80","from-amber-500/40 to-orange-800/80","from-fuchsia-500/40 to-purple-800/80","from-cyan-500/40 to-blue-800/80"][index%6]} p-4 text-right">
+        <span class="game-art text-3xl">${game.emoji}</span><strong class="mt-3 block text-lg">${game.title}</strong><span class="mt-1 block text-sm text-indigo-50/80">${game.description}</span>
       </button>`).join("");
       document.getElementById("game-play-area").innerHTML="";
     }
@@ -626,6 +665,8 @@
       else if(id==="puzzle")startPuzzleGame(area);
       else if(id==="memory")startMemoryGame(area);
       else if(id==="quiz")startQuizGame(area);
+      else if(id==="sequence")startSequenceGame(area);
+      else if(id==="math")startMathGame(area);
     }
     function gameShell(title,content){return `<section class="rounded-3xl border border-violet-200/20 bg-slate-950/50 p-4 sm:p-5"><div class="mb-4 flex flex-wrap items-center justify-between gap-2"><h4 class="text-lg font-black">${title}</h4><button type="button" onclick="renderGames()" class="rounded-lg bg-white/10 px-3 py-2 text-sm font-bold">اختيار لعبة أخرى</button></div>${content}</section>`;}
     function startBalloonGame(area){
@@ -662,10 +703,15 @@
       const canvas=document.createElement("canvas");canvas.width=500;canvas.height=500;
       const c=canvas.getContext("2d");
       const sky=c.createLinearGradient(0,0,0,500);sky.addColorStop(0,"#62c6ff");sky.addColorStop(1,"#e0f6ff");c.fillStyle=sky;c.fillRect(0,0,500,500);
+      c.fillStyle="rgba(255,255,255,.82)";
+      for(const [x,y,r] of [[90,105,25],[120,102,34],[151,108,24],[275,135,20],[300,130,29],[326,138,19]]){c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();}
+      c.strokeStyle="rgba(255,211,77,.65)";c.lineWidth=7;for(let i=0;i<12;i++){const a=i*Math.PI/6;c.beginPath();c.moveTo(390+Math.cos(a)*66,100+Math.sin(a)*66);c.lineTo(390+Math.cos(a)*82,100+Math.sin(a)*82);c.stroke();}
       c.fillStyle="#ffd44d";c.beginPath();c.arc(390,100,53,0,Math.PI*2);c.fill();
       c.fillStyle="#55c875";c.beginPath();c.ellipse(80,400,210,120,-.15,0,Math.PI*2);c.ellipse(380,420,230,130,.05,0,Math.PI*2);c.fill();
+      c.fillStyle="#d6b889";c.beginPath();c.moveTo(225,390);c.lineTo(275,390);c.lineTo(340,500);c.lineTo(160,500);c.closePath();c.fill();
       c.fillStyle="#f59465";c.fillRect(185,245,145,145);c.fillStyle="#ba5c55";c.beginPath();c.moveTo(165,250);c.lineTo(255,175);c.lineTo(350,250);c.fill();
-      c.fillStyle="#fff1bc";c.fillRect(215,285,37,48);c.fillRect(268,285,37,48);c.fillStyle="#81564d";c.fillRect(240,340,38,50);
+      c.fillStyle="#fff1bc";c.fillRect(215,285,37,48);c.fillRect(268,285,37,48);c.fillStyle="#5b88a8";c.fillRect(220,290,27,38);c.fillRect(273,290,27,38);c.fillStyle="#fff1bc";c.fillRect(232,290,4,38);c.fillRect(215,306,37,4);c.fillRect(285,290,4,38);c.fillRect(268,306,37,4);
+      c.fillStyle="#81564d";c.fillRect(240,340,38,50);c.fillStyle="#f5c65b";c.beginPath();c.arc(270,363,3,0,Math.PI*2);c.fill();
       for(let i=0;i<9;i++){const x=35+i*55,y=430-(i%3)*23;c.fillStyle=["#ff70a6","#ffe36e","#a78bfa"][i%3];c.beginPath();c.arc(x,y,13,0,Math.PI*2);c.fill();c.fillStyle="#f8fff0";c.fillRect(x-2,y+12,4,29);}
       c.fillStyle="#25335d";c.font="bold 30px Cairo";c.textAlign="center";c.fillText("حديقة الأصدقاء",250,475);
       return canvas.toDataURL();
@@ -738,6 +784,24 @@
         document.getElementById("quiz-next").addEventListener("click",()=>{index++;answered=false;render();});
       }
       render();
+    }
+    function startSequenceGame(area){
+      const colors=[{name:"الأحمر",fill:"#fb7185"},{name:"الأزرق",fill:"#60a5fa"},{name:"الأخضر",fill:"#4ade80"},{name:"الأصفر",fill:"#facc15"}];
+      let sequence=[],round=0,playing=false,locked=false,progress=0;
+      area.innerHTML=gameShell("🧠 ذاكرة الألوان",`<p id="sequence-status" class="mb-3 text-center text-indigo-100/80" aria-live="polite">شاهد الألوان ثم اضغطها بالترتيب نفسه.</p><div class="game-board mx-auto grid max-w-sm grid-cols-2 gap-3 rounded-3xl p-4">${colors.map((color,i)=>`<button type="button" data-color="${i}" aria-label="${color.name}" class="sequence-pad aspect-square rounded-2xl border-2 border-white/40 shadow-lg transition duration-150" style="background:linear-gradient(145deg,${color.fill},${color.fill}99)"></button>`).join("")}</div><div class="mt-4 text-center"><span id="sequence-round" class="rounded-full bg-white/10 px-4 py-2 font-bold">الجولة: ٠</span><button id="sequence-start" type="button" class="mr-2 rounded-xl bg-violet-600 px-4 py-2 font-bold">ابدأ اللعب</button></div>`);
+      const pads=[...area.querySelectorAll(".sequence-pad")],status=document.getElementById("sequence-status");
+      const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+      async function flash(index){pads[index].style.filter="brightness(1.8)";pads[index].style.transform="scale(.94)";await pause(360);pads[index].style.filter="";pads[index].style.transform="";await pause(140);}
+      async function nextRound(){locked=true;playing=false;sequence.push(Math.floor(Math.random()*colors.length));document.getElementById("sequence-round").textContent=`الجولة: ${round.toLocaleString("ar")}`;status.textContent="شاهد التسلسل جيدًا…";await pause(450);for(const item of sequence){await flash(item);}status.textContent="دورك! اضغط الألوان بالترتيب.";playing=true;locked=false;}
+      document.getElementById("sequence-start").addEventListener("click",()=>{sequence=[];round=1;progress=0;nextRound();});
+      pads.forEach((pad,index)=>pad.addEventListener("click",async()=>{if(!playing||locked)return;locked=true;await flash(index);if(index!==sequence[progress]){status.textContent=`انتهت اللعبة! وصلت إلى الجولة ${round.toLocaleString("ar")} 🌟`;playing=false;locked=false;showConfetti(18);return;}progress++;if(progress===sequence.length){playing=false;round++;progress=0;status.textContent="ممتاز! الجولة التالية…";await pause(500);nextRound();}else{playing=true;locked=false;}}));
+    }
+    function startMathGame(area){
+      let score=0,remaining=30,ended=false,timer=null;
+      area.innerHTML=gameShell("🔢 سباق الأرقام",`<div class="game-board mx-auto max-w-lg rounded-3xl p-5 text-center"><div class="mb-5 flex justify-between font-bold"><span>النقاط: <b id="math-score">٠</b></span><span>الوقت: <b id="math-time">٣٠</b> ث</span></div><div id="math-question" class="mb-5 text-4xl font-black text-amber-200"></div><div id="math-options" class="grid grid-cols-2 gap-3"></div><p id="math-status" class="mt-4 min-h-7 font-bold" aria-live="polite">اختر الإجابة الصحيحة بأسرع ما تستطيع!</p></div>`);
+      const question=document.getElementById("math-question"),options=document.getElementById("math-options"),status=document.getElementById("math-status");let answer=0;
+      function next(){if(ended)return;const max=ages[activeChild]>=9?20:ages[activeChild]>=7?12:6,a=Math.floor(Math.random()*max)+1,b=Math.floor(Math.random()*max)+1,subtract=Math.random()<.35&&ages[activeChild]>=7;answer=subtract?Math.max(a,b)-Math.min(a,b):a+b;question.textContent=subtract?`${Math.max(a,b)} − ${Math.min(a,b)} = ؟`:`${a} + ${b} = ؟`;const choices=new Set([answer]);while(choices.size<4)choices.add(Math.max(0,answer+Math.floor(Math.random()*9)-4));options.innerHTML=[...choices].sort(()=>Math.random()-.5).map(value=>`<button type="button" data-value="${value}" class="game-choice rounded-2xl border border-white/15 bg-white/10 p-4 text-2xl font-black">${value.toLocaleString("ar")}</button>`).join("");options.querySelectorAll("button").forEach(button=>button.addEventListener("click",()=>{if(ended)return;if(Number(button.dataset.value)===answer){score++;document.getElementById("math-score").textContent=score.toLocaleString("ar");status.textContent="إجابة صحيحة! ✨";playClickSound();}else status.textContent=`الإجابة الصحيحة ${answer.toLocaleString("ar")}، جرّب السؤال التالي!`;next();}));}
+      next();timer=setInterval(()=>{remaining--;document.getElementById("math-time").textContent=remaining.toLocaleString("ar");if(remaining<=0){ended=true;clearInterval(timer);question.textContent="انتهى الوقت!";options.innerHTML=`<button type="button" onclick="startGame('math')" class="col-span-2 rounded-xl bg-violet-600 p-3 font-bold">العب مرة أخرى</button>`;status.textContent=`جمعت ${score.toLocaleString("ar")} نقطة! أحسنت 🎉`;showConfetti(24);}},1000);gameCleanup=()=>clearInterval(timer);
     }
     function showConfetti(count){
       const layer=document.getElementById("confetti-layer"),colors=["#f472b6","#facc15","#34d399","#60a5fa","#c084fc"];
